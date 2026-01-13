@@ -7,6 +7,7 @@ import { ResponseInterceptor } from './commons/providers/interceptor/response/re
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { HttpExceptionFilter } from './commons/filters/http-exception.filter';
 import { setupSwagger } from './lib/swagger';
+import * as cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.use(helmet());
+  app.use(cookieParser());
 
   const reflector = app.get(Reflector);
 

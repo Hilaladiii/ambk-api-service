@@ -14,7 +14,7 @@ export class AuthService {
   async login({ email, password }: LoginRequest) {
     try {
       const user = await this.knex('users')
-        .select('id', 'email', 'username', 'password')
+        .select('id', 'email', 'username', 'password', 'role')
         .where({ email })
         .first();
       if (!user) throw new BadRequestException('User belum terdaftar!');
@@ -26,6 +26,7 @@ export class AuthService {
       const token = this.jwtService.sign({
         sub: user.id,
         username: user.username,
+        role: user.role,
       });
 
       return token;

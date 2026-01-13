@@ -1,10 +1,9 @@
-
 import { Knex } from 'knex';
 
 declare module 'knex' {
   namespace Knex {
     interface Tables {
-      'exam_attemps': {
+      exam_attemps: {
         id: string;
         exam_id: string | null;
         user_id: string | null;
@@ -12,17 +11,18 @@ declare module 'knex' {
         finished_at: Date | null;
         total_score: number | null;
       };
-      'exams': {
+      exams: {
         id: string;
         title: string | null;
         description: string | null;
         created_by: string | null;
-        start_time: Date | null;
-        end_time: Date | null;
+        start_time: string | null;
+        end_time: string | null;
         duration: number | null;
         is_published: boolean | null;
+        code: string | null;
       };
-      'questions': {
+      questions: {
         id: string;
         exam_id: string | null;
         type: string | null;
@@ -31,7 +31,7 @@ declare module 'knex' {
         structure: any | null;
         correct_answer: any | null;
       };
-      'user_answers': {
+      user_answers: {
         id: string;
         attemp_id: string | null;
         question_id: string | null;
@@ -39,7 +39,7 @@ declare module 'knex' {
         score_obtained: number | null;
         feedback: string | null;
       };
-      'users': {
+      users: {
         id: string;
         username: string | null;
         email: string | null;

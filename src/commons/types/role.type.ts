@@ -1,4 +1,6 @@
 //customize your role here...
 export enum Role {
-  USER = 'user',
+  ADMIN = 'ADMIN',
+  PARTICIPANT = 'PARTICIPANT',
+  SUPERVISOR = 'SUPERVISOR',
 }

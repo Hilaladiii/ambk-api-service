@@ -1,14 +1,23 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Res,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 import { Auth } from 'src/commons/decorators/auth.decorator';
+import { STATUS_CODES } from 'http';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async login(
     @Body() body: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -26,6 +35,7 @@ export class AuthController {
   }
 
   @Post('logout')
+  @HttpCode(HttpStatus.OK)
   @Auth()
   async logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('token');

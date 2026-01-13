@@ -8,6 +8,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { RedisModule } from './modules/redis/redis.module';
 import { KnexModule } from './modules/knex/knex.module';
 import { UserModule } from './modules/user/user.module';
+import { ExamModule } from './modules/exam/exam.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { UserModule } from './modules/user/user.module';
     RedisModule,
     KnexModule,
     UserModule,
+    ExamModule,
   ],
   providers: [
     {
