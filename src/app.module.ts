@@ -9,6 +9,7 @@ import { RedisModule } from './modules/redis/redis.module';
 import { KnexModule } from './modules/knex/knex.module';
 import { UserModule } from './modules/user/user.module';
 import { ExamModule } from './modules/exam/exam.module';
+import { QuestionModule } from './modules/question/question.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ExamModule } from './modules/exam/exam.module';
     KnexModule,
     UserModule,
     ExamModule,
+    QuestionModule,
   ],
   providers: [
     {
