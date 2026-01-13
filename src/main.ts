@@ -4,7 +4,7 @@ import { AppModule } from './app.module';
 import helmet from 'helmet';
 import * as dotenv from 'dotenv';
 import { ResponseInterceptor } from './commons/providers/interceptor/response/response.interceptor';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { HttpExceptionFilter } from './commons/filters/http-exception.filter';
 import { setupSwagger } from './lib/swagger';
 
@@ -20,6 +20,12 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor(reflector));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  app.setGlobalPrefix('api');
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
 
   setupSwagger(app);
 

@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from './modules/prisma/prisma.module';
-import { MinioModule } from './modules/minio/minio.module';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -29,10 +27,7 @@ import { UserModule } from './modules/user/user.module';
       }),
       inject: [ConfigService],
     }),
-    PrismaModule,
-    MinioModule,
     AuthModule,
-    CacheModule,
     RedisModule,
     KnexModule,
     UserModule,

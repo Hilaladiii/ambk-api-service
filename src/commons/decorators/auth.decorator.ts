@@ -4,5 +4,5 @@ import { Roles } from './role.decorator';
 import { JwtGuard } from '../providers/guards/jwt.guard';
 import { RoleGuard } from '../providers/guards/role.guard';
 
-export const Auth = (roles: Role[]) =>
+export const Auth = (roles?: Role[]) =>
   applyDecorators(Roles(roles), UseGuards(JwtGuard, RoleGuard));
