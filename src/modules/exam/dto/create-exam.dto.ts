@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsDate,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -23,12 +24,14 @@ export class CreateExamDto {
   code: string;
 
   @IsNotEmpty()
-  @IsString()
-  startTime: string;
+  @Type(() => Date)
+  @IsDate()
+  startTime: Date;
 
   @IsNotEmpty()
-  @IsString()
-  endTime: string;
+  @Type(() => Date)
+  @IsDate()
+  endTime: Date;
 
   @IsNotEmpty()
   @Type(() => Number)

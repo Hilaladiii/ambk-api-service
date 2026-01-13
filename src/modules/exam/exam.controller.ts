@@ -38,4 +38,22 @@ export class ExamController {
   ) {
     return await this.examService.getEnrolled({ userId, pagination, search });
   }
+
+  @Post('attemp/:examId')
+  @Auth([Role.PARTICIPANT])
+  async attemp(
+    @GetCurrentUser('sub') userId: string,
+    @Param('examId') examId: string,
+  ) {
+    return this.examService.attemp({ userId, examId });
+  }
+
+  @Post(':examId/submit/:attempId')
+  @Auth([Role.PARTICIPANT])
+  async submit(
+    @Param('examId') examId: string,
+    @Param('examId') attempId: string,
+  ) {
+    return await this.examService.submit({ examId, attempId });
+  }
 }

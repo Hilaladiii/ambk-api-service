@@ -17,8 +17,8 @@ declare module 'knex' {
         title: string | null;
         description: string | null;
         created_by: string | null;
-        start_time: string | null;
-        end_time: string | null;
+        start_time: Date | null;
+        end_time: Date | null;
         duration: number | null;
         is_published: boolean | null;
         code: string | null;

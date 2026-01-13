@@ -5,8 +5,8 @@ export interface CreateExamRequest {
   title: string;
   description?: string;
   code: string;
-  startTime: string;
-  endTime: string;
+  startTime: Date;
+  endTime: Date;
   duration: number;
   isPublished: boolean;
 }
@@ -20,4 +20,14 @@ export interface GetEnrollExams {
   userId: string;
   pagination: PaginationParams;
   search?: string;
+}
+
+export interface AttempExamRequest {
+  examId: string;
+  userId: string;
+}
+
+export interface SubmitExamRequest {
+  examId: string;
+  attempId: string;
 }
