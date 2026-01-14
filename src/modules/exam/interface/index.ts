@@ -22,12 +22,12 @@ export interface GetEnrollExams {
   search?: string;
 }
 
-export interface AttempExamRequest {
+export interface AttemptExamRequest {
   examId: string;
   userId: string;
 }
 
 export interface SubmitExamRequest {
   examId: string;
-  attempId: string;
+  attemptId: string;
 }

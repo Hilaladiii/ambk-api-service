@@ -6,7 +6,6 @@ import {
   CreateQuestionRequest,
   GetQuestionRequest,
 } from './interface';
-import { PaginationParams } from 'src/commons/types/pagination.type';
 import { responsePaginate } from 'src/commons/utils/pagination';
 
 @Injectable()
@@ -42,34 +41,34 @@ export class QuestionService {
     return responsePaginate(query, pagination);
   }
 
-  async answer({ attempId, questionId, answer }: AnswerQuestionRequest) {
+  async answer({ attemptId, questionId, answer }: AnswerQuestionRequest) {
     try {
-      const attemp = await this.knex('exam_attemps')
-        .join('exams', 'exam_attemps.exam_id', 'exams.id')
-        .where('id', attempId)
+      const attempt = await this.knex('exam_attempts')
+        .join('exams', 'exam_attempts.exam_id', 'exams.id')
+        .where('id', attemptId)
         .select('started_at', 'finished_at', 'end_time')
         .first();
 
-      if (!attemp) throw new BadRequestException('Data ujian tidak ditemukan');
+      if (!attempt) throw new BadRequestException('Data ujian tidak ditemukan');
 
-      if (!attemp.started_at)
+      if (!attempt.started_at)
         throw new BadRequestException('Ujian belum dimulai');
 
-      if (attemp.finished_at) {
+      if (attempt.finished_at) {
         throw new BadRequestException('Anda sudah menyelesaikan ujian ini');
       }
 
       const now = new Date();
-      if (new Date(attemp.end_time) < now)
+      if (new Date(attempt.end_time) < now)
         throw new BadRequestException('Waktu ujian telah habis');
 
       return await this.knex('user_answers')
         .insert({
-          attemp_id: attempId,
+          attempt_id: attemptId,
           question_id: questionId,
           answer,
         })
-        .onConflict(['attemp_id', 'question_id'])
+        .onConflict(['attempt_id', 'question_id'])
         .merge({
           answer,
         })

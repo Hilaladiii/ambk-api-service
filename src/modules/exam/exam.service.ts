@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { KNEX_CONNECTION } from '../knex/knex.module';
 import { Knex } from 'knex';
 import {
-  AttempExamRequest,
+  AttemptExamRequest,
   CreateExamRequest,
   EnrollExamRequest,
   GetEnrollExams,
@@ -46,7 +46,7 @@ export class ExamService {
   async getEnrolled({ userId, pagination, search }: GetEnrollExams) {
     try {
       const query = this.knex('exams')
-        .join('exam_attemps', 'exams.id', 'exam_attemps.exam_id')
+        .join('exam_attempts', 'exams.id', 'exam_attempts.exam_id')
         .where({ user_id: userId })
         .select(['title', 'description', 'start_time', 'end_time', 'duration'])
         .orderBy('title', 'desc');
@@ -65,7 +65,7 @@ export class ExamService {
     try {
       await this.getById(examId);
 
-      const [newEnroll] = await this.knex('exam_attemps')
+      const [newEnroll] = await this.knex('exam_attempts')
         .insert({
           exam_id: examId,
           user_id: userId,
@@ -78,31 +78,44 @@ export class ExamService {
     }
   }
 
-  async attemp({ examId, userId }: AttempExamRequest) {
+  async attempt({ examId, userId }: AttemptExamRequest) {
     try {
       await this.getById(examId);
 
-      const [attemp] = await this.knex('exam_attemps')
-        .update({
-          started_at: new Date(),
-        })
-        .where({ exam_id: examId })
-        .andWhere({ user_id: userId })
-        .returning('*');
+      return this.knex.transaction(async (trx) => {
+        const [attempt] = await trx('exam_attempts')
+          .insert({
+            user_id: userId,
+            exam_id: examId,
+            started_at: new Date(),
+          })
+          .returning('*');
 
-      return attemp;
+        const questions = await trx('questions')
+          .select('id')
+          .where('exam_id', examId);
+
+        const shuffledQuestions = this.shuffleArray(questions);
+        const mappingPayload = shuffledQuestions.map((q, index) => ({
+          attempt_id: attempt.id,
+          question_id: q.id,
+          sort_order: index + 1,
+        }));
+
+        await trx('exam_attempt_questions').insert(mappingPayload);
+      });
     } catch (error) {
       throw error;
     }
   }
 
-  async submit({ examId, attempId }: SubmitExamRequest) {
+  async submit({ examId, attemptId }: SubmitExamRequest) {
     try {
       await this.getById(examId);
 
       const answers = await this.knex('user_answers')
         .join('questions', 'user_answers.question_id', 'questions.id')
-        .where('user_answers.exam_attemp_id', attempId)
+        .where('user_answers.exam_attempt_id', attemptId)
         .select(
           'user_answers.id as answer_id',
           'answer',
@@ -137,12 +150,12 @@ export class ExamService {
 
       await Promise.all(updates);
 
-      await this.knex('exam_attemps')
+      await this.knex('exam_attempts')
         .update({
           total_score: totalScore,
           finished_at: new Date(),
         })
-        .where({ id: attempId });
+        .where({ id: attemptId });
     } catch (error) {
       throw error;
     }
@@ -153,5 +166,13 @@ export class ExamService {
 
     if (!exam) throw new BadRequestException('Invalid exam id');
     return exam;
+  }
+
+  private shuffleArray(array: any[]) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
   }
 }

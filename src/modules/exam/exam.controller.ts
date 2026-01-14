@@ -39,21 +39,21 @@ export class ExamController {
     return await this.examService.getEnrolled({ userId, pagination, search });
   }
 
-  @Post('attemp/:examId')
+  @Post('attempt/:examId')
   @Auth([Role.PARTICIPANT])
-  async attemp(
+  async attempt(
     @GetCurrentUser('sub') userId: string,
     @Param('examId') examId: string,
   ) {
-    return this.examService.attemp({ userId, examId });
+    return this.examService.attempt({ userId, examId });
   }
 
-  @Post(':examId/submit/:attempId')
+  @Post(':examId/submit/:attemptId')
   @Auth([Role.PARTICIPANT])
   async submit(
     @Param('examId') examId: string,
-    @Param('examId') attempId: string,
+    @Param('attemptId') attemptId: string,
   ) {
-    return await this.examService.submit({ examId, attempId });
+    return await this.examService.submit({ examId, attemptId });
   }
 }

@@ -26,13 +26,17 @@ export class QuestionController {
     return await this.questionService.getByExamId({ examId, pagination });
   }
 
-  @Post(':questionId/answer/:attempId')
+  @Post(':questionId/answer/:attemptId')
   @Auth([Role.PARTICIPANT])
   async answer(
     @Param('questionId') questionId: string,
-    @Param('attempId') attempId: string,
+    @Param('attemptId') attemptId: string,
     @Body() body: AnswerQuestionDto,
   ) {
-    return await this.questionService.answer({ attempId, questionId, ...body });
+    return await this.questionService.answer({
+      attemptId,
+      questionId,
+      ...body,
+    });
   }
 }

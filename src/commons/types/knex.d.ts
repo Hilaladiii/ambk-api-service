@@ -4,7 +4,14 @@ import { Knex } from 'knex';
 declare module 'knex' {
   namespace Knex {
     interface Tables {
-      'exam_attemps': {
+      'exam_attempt_questions': {
+        id: string;
+        attempt_id: string | null;
+        question_id: string | null;
+        sort_order: number;
+        is_flagged: boolean | null;
+      };
+      'exam_attempts': {
         id: string;
         exam_id: string | null;
         user_id: string | null;
@@ -34,7 +41,7 @@ declare module 'knex' {
       };
       'user_answers': {
         id: string;
-        attemp_id: string | null;
+        attempt_id: string | null;
         question_id: string | null;
         answer: any | null;
         score_obtained: number | null;

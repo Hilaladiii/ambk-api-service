@@ -23,6 +23,6 @@ export interface GetQuestionRequest {
 
 export interface AnswerQuestionRequest {
   questionId: string;
-  attempId: string;
+  attemptId: string;
   answer: object;
 }
