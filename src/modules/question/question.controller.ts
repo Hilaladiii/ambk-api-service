@@ -5,6 +5,7 @@ import { Role } from 'src/commons/types/role.type';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { Pagination } from 'src/commons/decorators/pagination.decorator';
 import { PaginationParams } from 'src/commons/types/pagination.type';
+import { AnswerQuestionDto } from './dto/answer-question.dto';
 
 @Controller('question')
 export class QuestionController {
@@ -23,5 +24,15 @@ export class QuestionController {
     @Param('examId') examId: string,
   ) {
     return await this.questionService.getByExamId({ examId, pagination });
+  }
+
+  @Post(':questionId/answer/:attempId')
+  @Auth([Role.PARTICIPANT])
+  async answer(
+    @Param('questionId') questionId: string,
+    @Param('attempId') attempId: string,
+    @Body() body: AnswerQuestionDto,
+  ) {
+    return await this.questionService.answer({ attempId, questionId, ...body });
   }
 }

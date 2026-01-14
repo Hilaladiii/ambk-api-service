@@ -20,3 +20,9 @@ export interface GetQuestionRequest {
   examId: string;
   pagination: PaginationParams;
 }
+
+export interface AnswerQuestionRequest {
+  questionId: string;
+  attempId: string;
+  answer: object;
+}
