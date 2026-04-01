@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -10,7 +11,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { Response } from 'express';
 import { Auth } from 'src/commons/decorators/auth.decorator';
-import { STATUS_CODES } from 'http';
+import { GetCurrentUser } from 'src/commons/decorators/get-current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -39,5 +40,11 @@ export class AuthController {
   @Auth()
   async logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('token');
+  }
+
+  @Get('me')
+  @Auth()
+  async getMe(@GetCurrentUser('sub') userId: string) {
+    return this.authService.getMe(userId);
   }
 }

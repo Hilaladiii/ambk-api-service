@@ -16,7 +16,20 @@ export interface CreateQuestionRequest {
   correctAnswer: object;
 }
 
+export interface UpdateQuestionRequest {
+  type?: QuestionType;
+  question?: string;
+  point?: number;
+  structure?: object;
+  correctAnswer?: object;
+}
+
 export interface GetQuestionRequest {
+  attemptId: string;
+  pagination: PaginationParams;
+}
+
+export interface GetByExamRequest {
   examId: string;
   pagination: PaginationParams;
 }
@@ -26,3 +39,9 @@ export interface AnswerQuestionRequest {
   attemptId: string;
   answer: object;
 }
+
+export interface ToggleFlagRequest {
+  attemptId: string;
+  questionId: string;
+}
+

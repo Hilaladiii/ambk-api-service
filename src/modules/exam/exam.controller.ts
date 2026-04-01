@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ExamService } from './exam.service';
 import { GetCurrentUser } from 'src/commons/decorators/get-current-user.decorator';
 import { Auth } from 'src/commons/decorators/auth.decorator';
 import { Role } from 'src/commons/types/role.type';
 import { CreateExamDto } from './dto/create-exam.dto';
+import { UpdateExamDto } from './dto/update-exam.dto';
 import { Pagination } from 'src/commons/decorators/pagination.decorator';
 import { PaginationParams } from 'src/commons/types/pagination.type';
 
@@ -11,22 +12,22 @@ import { PaginationParams } from 'src/commons/types/pagination.type';
 export class ExamController {
   constructor(private examService: ExamService) {}
 
-  @Post()
+  @Get()
   @Auth([Role.ADMIN])
-  async create(
-    @GetCurrentUser('sub') creatorId: string,
-    @Body() body: CreateExamDto,
+  async findAll(
+    @Pagination() pagination: PaginationParams,
+    @Query('search') search?: string,
   ) {
-    return await this.examService.create({ creatorId, ...body });
+    return await this.examService.findAll(pagination, search);
   }
 
-  @Post('enroll/:examId')
+  @Get('history')
   @Auth([Role.PARTICIPANT])
-  async enroll(
+  async getMyHistory(
     @GetCurrentUser('sub') userId: string,
-    @Param('examId') examId: string,
+    @Pagination() pagination: PaginationParams,
   ) {
-    return await this.examService.enroll({ userId, examId });
+    return await this.examService.getMyHistory(userId, pagination);
   }
 
   @Get('enrolled')
@@ -37,6 +38,54 @@ export class ExamController {
     @Query('search') search?: string,
   ) {
     return await this.examService.getEnrolled({ userId, pagination, search });
+  }
+
+  @Get(':id')
+  @Auth([Role.ADMIN])
+  async getByIdDetail(@Param('id') id: string) {
+    return await this.examService.getByIdDetail(id);
+  }
+
+  @Get(':id/attempts')
+  @Auth([Role.ADMIN])
+  async getAttempts(
+    @Param('id') id: string,
+    @Pagination() pagination: PaginationParams,
+  ) {
+    return await this.examService.getAttempts(id, pagination);
+  }
+
+  @Post()
+  @Auth([Role.ADMIN])
+  async create(
+    @GetCurrentUser('sub') creatorId: string,
+    @Body() body: CreateExamDto,
+  ) {
+    return await this.examService.create({ creatorId, ...body });
+  }
+
+  @Put(':id')
+  @Auth([Role.ADMIN])
+  async update(
+    @Param('id') id: string,
+    @Body() body: UpdateExamDto,
+  ) {
+    return await this.examService.update(id, body);
+  }
+
+  @Delete(':id')
+  @Auth([Role.ADMIN])
+  async delete(@Param('id') id: string) {
+    return await this.examService.delete(id);
+  }
+
+  @Post('enroll/:examId')
+  @Auth([Role.PARTICIPANT])
+  async enroll(
+    @GetCurrentUser('sub') userId: string,
+    @Param('examId') examId: string,
+  ) {
+    return await this.examService.enroll({ userId, examId });
   }
 
   @Post('attempt/:examId')

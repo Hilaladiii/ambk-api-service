@@ -34,4 +34,16 @@ export class AuthService {
       throw error;
     }
   }
+
+  async getMe(userId: string) {
+    const user = await this.knex('users')
+      .select('id', 'email', 'username', 'role', 'created_at', 'updated_at')
+      .where({ id: userId })
+      .first();
+      
+    if (!user) {
+      throw new BadRequestException('User tidak ditemukan');
+    }
+    return user;
+  }
 }

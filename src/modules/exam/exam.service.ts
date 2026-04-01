@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { KNEX_CONNECTION } from '../knex/knex.module';
 import { Knex } from 'knex';
 import {
@@ -7,13 +12,128 @@ import {
   EnrollExamRequest,
   GetEnrollExams,
   SubmitExamRequest,
+  UpdateExamRequest,
 } from './interface';
 import { responsePaginate } from 'src/commons/utils/pagination';
 import { calculateScore } from 'src/commons/utils/calculate-score';
+import { PaginationParams } from 'src/commons/types/pagination.type';
 
 @Injectable()
 export class ExamService {
   constructor(@Inject(KNEX_CONNECTION) private knex: Knex) {}
+
+  async findAll(pagination: PaginationParams, search?: string) {
+    try {
+      const query = this.knex('exams')
+        .select(
+          'id',
+          'title',
+          'code',
+          'duration',
+          'start_time',
+          'end_time',
+          'is_published',
+        )
+        .orderBy('start_time', 'desc');
+
+      if (search) {
+        query.where('title', 'ilike', `%${search}%`);
+      }
+
+      return responsePaginate(query, pagination);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getByIdDetail(id: string) {
+    try {
+      const exam = await this.knex('exams').select('*').where({ id }).first();
+
+      if (!exam) throw new NotFoundException('Exam not found');
+      return exam;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async update(id: string, data: UpdateExamRequest) {
+    try {
+      const exam = await this.getById(id);
+
+      const updateData: any = {};
+      if (data.title !== undefined) updateData.title = data.title;
+      if (data.description !== undefined)
+        updateData.description = data.description;
+      if (data.code !== undefined) updateData.code = data.code;
+      if (data.startTime !== undefined) updateData.start_time = data.startTime;
+      if (data.endTime !== undefined) updateData.end_time = data.endTime;
+      if (data.duration !== undefined) updateData.duration = data.duration;
+      if (data.isPublished !== undefined)
+        updateData.is_published = data.isPublished;
+
+      if (Object.keys(updateData).length > 0) {
+        await this.knex('exams').update(updateData).where({ id });
+      }
+
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async delete(id: string) {
+    try {
+      const deleted = await this.knex('exams').where({ id }).del();
+      if (!deleted) throw new NotFoundException('Exam not found');
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAttempts(examId: string, pagination: PaginationParams) {
+    try {
+      const query = this.knex('exam_attempts')
+        .join('users', 'exam_attempts.user_id', 'users.id')
+        .where('exam_attempts.exam_id', examId)
+        .select(
+          'exam_attempts.id',
+          'users.username',
+          'users.email',
+          'exam_attempts.started_at',
+          'exam_attempts.finished_at',
+          'exam_attempts.total_score',
+        )
+        .orderBy('exam_attempts.started_at', 'desc');
+
+      return responsePaginate(query, pagination);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getMyHistory(userId: string, pagination: PaginationParams) {
+    try {
+      const query = this.knex('exam_attempts')
+        .join('exams', 'exam_attempts.exam_id', 'exams.id')
+        .where('exam_attempts.user_id', userId)
+        .whereNotNull('exam_attempts.finished_at')
+        .select(
+          'exam_attempts.id',
+          'exams.title',
+          'exams.code',
+          'exam_attempts.started_at',
+          'exam_attempts.finished_at',
+          'exam_attempts.total_score',
+        )
+        .orderBy('exam_attempts.finished_at', 'desc');
+
+      return responsePaginate(query, pagination);
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async create(data: CreateExamRequest) {
     try {

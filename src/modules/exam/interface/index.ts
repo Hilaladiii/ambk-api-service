@@ -11,6 +11,16 @@ export interface CreateExamRequest {
   isPublished: boolean;
 }
 
+export interface UpdateExamRequest {
+  title?: string;
+  description?: string;
+  code?: string;
+  startTime?: Date;
+  endTime?: Date;
+  duration?: number;
+  isPublished?: boolean;
+}
+
 export interface EnrollExamRequest {
   examId: string;
   userId: string;
@@ -31,3 +41,4 @@ export interface SubmitExamRequest {
   examId: string;
   attemptId: string;
 }
+
