@@ -4,6 +4,12 @@ import { Knex } from 'knex';
 declare module 'knex' {
   namespace Knex {
     interface Tables {
+      'exam_attempt_activities': {
+        id: string;
+        attempt_id: string | null;
+        event_type: string;
+        created_at: Date | null;
+      };
       'exam_attempt_questions': {
         id: string;
         attempt_id: string | null;
@@ -18,6 +24,7 @@ declare module 'knex' {
         started_at: Date | null;
         finished_at: Date | null;
         total_score: number | null;
+        is_cheated: boolean | null;
       };
       'exams': {
         id: string;
@@ -29,6 +36,7 @@ declare module 'knex' {
         duration: number | null;
         is_published: boolean | null;
         code: string | null;
+        hide_score_on_cheating: boolean | null;
       };
       'questions': {
         id: string;

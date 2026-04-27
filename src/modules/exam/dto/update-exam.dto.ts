@@ -40,4 +40,8 @@ export class UpdateExamDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hideScoreOnCheating?: boolean;
 }

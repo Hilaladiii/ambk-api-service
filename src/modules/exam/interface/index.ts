@@ -9,6 +9,7 @@ export interface CreateExamRequest {
   endTime: Date;
   duration: number;
   isPublished: boolean;
+  hideScoreOnCheating: boolean;
 }
 
 export interface UpdateExamRequest {
@@ -19,6 +20,7 @@ export interface UpdateExamRequest {
   endTime?: Date;
   duration?: number;
   isPublished?: boolean;
+  hideScoreOnCheating?: boolean;
 }
 
 export interface EnrollExamRequest {

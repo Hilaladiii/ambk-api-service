@@ -11,12 +11,16 @@ export function calculateScore(
   switch (type) {
     case 'MULTIPLE':
     case 'TRUE_FALSE':
-      const uVal = userAnswer.key || userAnswer;
-      const cVal = correctAnswer.key || correctAnswer;
+      const uVal =
+        userAnswer.key !== undefined ? userAnswer.key : userAnswer.value;
+      const cVal =
+        correctAnswer.key !== undefined ? correctAnswer.key : correctAnswer.value;
       return uVal === cVal ? maxPoint : 0;
 
     case 'MATCHING':
-      return isEqual(userAnswer, correctAnswer) ? maxPoint : 0;
+      const uPairs = userAnswer.pairs || userAnswer;
+      const cPairs = correctAnswer.pairs || correctAnswer;
+      return isEqual(uPairs, cPairs) ? maxPoint : 0;
 
     case 'ESSAY':
       return 0;

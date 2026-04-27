@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -12,7 +21,7 @@ import { PaginationParams } from 'src/commons/types/pagination.type';
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Post()
+  @Post('register')
   async create(@Body() body: CreateUserDto) {
     return await this.userService.create({ ...body });
   }

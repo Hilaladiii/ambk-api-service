@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ExamService } from './exam.service';
 import { GetCurrentUser } from 'src/commons/decorators/get-current-user.decorator';
 import { Auth } from 'src/commons/decorators/auth.decorator';
@@ -8,7 +17,7 @@ import { UpdateExamDto } from './dto/update-exam.dto';
 import { Pagination } from 'src/commons/decorators/pagination.decorator';
 import { PaginationParams } from 'src/commons/types/pagination.type';
 
-@Controller('exam')
+@Controller('exams')
 export class ExamController {
   constructor(private examService: ExamService) {}
 
@@ -66,10 +75,7 @@ export class ExamController {
 
   @Put(':id')
   @Auth([Role.ADMIN])
-  async update(
-    @Param('id') id: string,
-    @Body() body: UpdateExamDto,
-  ) {
+  async update(@Param('id') id: string, @Body() body: UpdateExamDto) {
     return await this.examService.update(id, body);
   }
 
@@ -88,6 +94,15 @@ export class ExamController {
     return await this.examService.enroll({ userId, examId });
   }
 
+  @Post('enroll-by-code')
+  @Auth([Role.PARTICIPANT])
+  async enrollByCode(
+    @GetCurrentUser('sub') userId: string,
+    @Body('code') code: string,
+  ) {
+    return await this.examService.enrollByCode({ userId, code });
+  }
+
   @Post('attempt/:examId')
   @Auth([Role.PARTICIPANT])
   async attempt(
@@ -104,5 +119,11 @@ export class ExamController {
     @Param('attemptId') attemptId: string,
   ) {
     return await this.examService.submit({ examId, attemptId });
+  }
+
+  @Get('attempt/:attemptId/detail')
+  @Auth([Role.PARTICIPANT])
+  async getAttemptDetail(@Param('attemptId') attemptId: string) {
+    return await this.examService.getAttemptDetail(attemptId);
   }
 }

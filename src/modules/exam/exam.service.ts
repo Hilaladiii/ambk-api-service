@@ -26,14 +26,17 @@ export class ExamService {
     try {
       const query = this.knex('exams')
         .select(
-          'id',
-          'title',
-          'code',
-          'duration',
-          'start_time',
-          'end_time',
-          'is_published',
+          'exams.id',
+          'exams.title',
+          'exams.code',
+          'exams.duration',
+          'exams.start_time',
+          'exams.end_time',
+          'exams.is_published',
+          'exams.hide_score_on_cheating',
+          'users.username as created_by',
         )
+        .leftJoin('users', 'exams.created_by', 'users.id')
         .orderBy('start_time', 'desc');
 
       if (search) {
@@ -71,6 +74,8 @@ export class ExamService {
       if (data.duration !== undefined) updateData.duration = data.duration;
       if (data.isPublished !== undefined)
         updateData.is_published = data.isPublished;
+      if (data.hideScoreOnCheating !== undefined)
+        updateData.hide_score_on_cheating = data.hideScoreOnCheating;
 
       if (Object.keys(updateData).length > 0) {
         await this.knex('exams').update(updateData).where({ id });
@@ -104,6 +109,7 @@ export class ExamService {
           'exam_attempts.started_at',
           'exam_attempts.finished_at',
           'exam_attempts.total_score',
+          'exam_attempts.is_cheated',
         )
         .orderBy('exam_attempts.started_at', 'desc');
 
@@ -125,7 +131,13 @@ export class ExamService {
           'exams.code',
           'exam_attempts.started_at',
           'exam_attempts.finished_at',
-          'exam_attempts.total_score',
+          this.knex.raw(`
+            CASE 
+              WHEN exams.hide_score_on_cheating = true AND exam_attempts.is_cheated = true THEN NULL
+              ELSE exam_attempts.total_score 
+            END as total_score
+          `),
+          'exam_attempts.is_cheated',
         )
         .orderBy('exam_attempts.finished_at', 'desc');
 
@@ -154,6 +166,7 @@ export class ExamService {
           start_time: data.startTime,
           end_time: data.endTime,
           is_published: data.isPublished,
+          hide_score_on_cheating: data.hideScoreOnCheating,
         })
         .returning('*');
 
@@ -168,8 +181,24 @@ export class ExamService {
       const query = this.knex('exams')
         .join('exam_attempts', 'exams.id', 'exam_attempts.exam_id')
         .where({ user_id: userId })
-        .select(['title', 'description', 'start_time', 'end_time', 'duration'])
-        .orderBy('title', 'desc');
+        .select([
+          'exams.id',
+          'exams.title',
+          'exams.description',
+          'exams.start_time',
+          'exams.end_time',
+          'exams.duration',
+          'exam_attempts.id as attempt_id',
+          'exam_attempts.started_at',
+          'exam_attempts.finished_at',
+          this.knex.raw(`
+            CASE
+              WHEN exams.hide_score_on_cheating = true AND exam_attempts.is_cheated = true THEN NULL
+              ELSE exam_attempts.total_score
+            END as total_score
+          `),
+        ])
+        .orderBy('start_time', 'desc');
 
       if (search) {
         query.andWhere('title', 'ilike', `%${search}%`);
@@ -198,17 +227,61 @@ export class ExamService {
     }
   }
 
+  async enrollByCode({ code, userId }: { code: string; userId: string }) {
+    try {
+      const exam = await this.knex('exams')
+        .select('id')
+        .where({ code })
+        .where('is_published', true)
+        .first();
+
+      if (!exam)
+        throw new NotFoundException(
+          'Ujian tidak ditemukan atau belum dipublish',
+        );
+
+      const existing = await this.knex('exam_attempts')
+        .where({ exam_id: exam.id, user_id: userId })
+        .first();
+
+      if (existing)
+        throw new BadRequestException('Anda sudah terdaftar di ujian ini');
+
+      const [newEnroll] = await this.knex('exam_attempts')
+        .insert({
+          exam_id: exam.id,
+          user_id: userId,
+        })
+        .returning(['exam_id', 'user_id']);
+
+      return newEnroll;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async attempt({ examId, userId }: AttemptExamRequest) {
     try {
       await this.getById(examId);
 
+      const existing = await this.knex('exam_attempts')
+        .where({ exam_id: examId, user_id: userId })
+        .first();
+
+      if (!existing) {
+        throw new BadRequestException('Anda belum terdaftar di ujian ini');
+      }
+
+      if (existing.started_at) {
+        return existing;
+      }
+
       return this.knex.transaction(async (trx) => {
         const [attempt] = await trx('exam_attempts')
-          .insert({
-            user_id: userId,
-            exam_id: examId,
+          .update({
             started_at: new Date(),
           })
+          .where({ id: existing.id })
           .returning('*');
 
         const questions = await trx('questions')
@@ -223,6 +296,8 @@ export class ExamService {
         }));
 
         await trx('exam_attempt_questions').insert(mappingPayload);
+
+        return attempt;
       });
     } catch (error) {
       throw error;
@@ -235,7 +310,7 @@ export class ExamService {
 
       const answers = await this.knex('user_answers')
         .join('questions', 'user_answers.question_id', 'questions.id')
-        .where('user_answers.exam_attempt_id', attemptId)
+        .where('user_answers.attempt_id', attemptId)
         .select(
           'user_answers.id as answer_id',
           'answer',
@@ -286,6 +361,30 @@ export class ExamService {
 
     if (!exam) throw new BadRequestException('Invalid exam id');
     return exam;
+  }
+
+  async getAttemptDetail(attemptId: string) {
+    try {
+      const attempt = await this.knex('exam_attempts')
+        .join('exams', 'exam_attempts.exam_id', 'exams.id')
+        .where('exam_attempts.id', attemptId)
+        .select(
+          'exam_attempts.id',
+          'exam_attempts.started_at',
+          'exam_attempts.finished_at',
+          'exams.id as exam_id',
+          'exams.title',
+          'exams.duration',
+          'exams.end_time',
+        )
+        .first();
+
+      if (!attempt)
+        throw new NotFoundException('Data pengerjaan tidak ditemukan');
+      return attempt;
+    } catch (error) {
+      throw error;
+    }
   }
 
   private shuffleArray(array: any[]) {

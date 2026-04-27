@@ -17,7 +17,7 @@ import { Pagination } from 'src/commons/decorators/pagination.decorator';
 import { PaginationParams } from 'src/commons/types/pagination.type';
 import { AnswerQuestionDto } from './dto/answer-question.dto';
 
-@Controller('question')
+@Controller('questions')
 export class QuestionController {
   constructor(private questionService: QuestionService) {}
 

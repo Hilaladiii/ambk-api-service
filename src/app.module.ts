@@ -10,6 +10,7 @@ import { KnexModule } from './modules/knex/knex.module';
 import { UserModule } from './modules/user/user.module';
 import { ExamModule } from './modules/exam/exam.module';
 import { QuestionModule } from './modules/question/question.module';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { QuestionModule } from './modules/question/question.module';
     UserModule,
     ExamModule,
     QuestionModule,
+    MonitoringModule,
   ],
   providers: [
     {

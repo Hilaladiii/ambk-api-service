@@ -41,4 +41,8 @@ export class CreateExamDto {
   @IsNotEmpty()
   @IsBoolean()
   isPublished: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  hideScoreOnCheating: boolean;
 }

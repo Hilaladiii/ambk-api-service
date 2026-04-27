@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { KNEX_CONNECTION } from '../knex/knex.module';
 import { Knex } from 'knex';
 import {
@@ -45,9 +50,7 @@ export class QuestionService {
   }
 
   async getById(id: string) {
-    const question = await this.knex('questions')
-      .where({ id })
-      .first();
+    const question = await this.knex('questions').where({ id }).first();
 
     if (!question) throw new NotFoundException('Question not found');
     return question;
@@ -59,10 +62,13 @@ export class QuestionService {
 
       const updateData: any = {};
       if (payload.type !== undefined) updateData.type = payload.type;
-      if (payload.question !== undefined) updateData.question = payload.question;
+      if (payload.question !== undefined)
+        updateData.question = payload.question;
       if (payload.point !== undefined) updateData.point = payload.point;
-      if (payload.structure !== undefined) updateData.structure = payload.structure;
-      if (payload.correctAnswer !== undefined) updateData.correct_answer = payload.correctAnswer;
+      if (payload.structure !== undefined)
+        updateData.structure = payload.structure;
+      if (payload.correctAnswer !== undefined)
+        updateData.correct_answer = payload.correctAnswer;
 
       if (Object.keys(updateData).length > 0) {
         await this.knex('questions').update(updateData).where({ id });
@@ -96,6 +102,7 @@ export class QuestionService {
       .where('exam_attempt_questions.attempt_id', attemptId)
       .select([
         'questions.id',
+        'questions.exam_id',
         'questions.type',
         'questions.question',
         'questions.structure',
@@ -129,7 +136,7 @@ export class QuestionService {
       if (new Date(attempt.end_time) < now)
         throw new BadRequestException('Waktu ujian telah habis');
 
-      return await this.knex('user_answers')
+      const result = await this.knex('user_answers')
         .insert({
           attempt_id: attemptId,
           question_id: questionId,
@@ -139,8 +146,9 @@ export class QuestionService {
         .merge({
           answer,
         })
-        .returning('answer')
-        .first();
+        .returning('answer');
+
+      return result[0];
     } catch (error) {
       throw error;
     }
@@ -152,7 +160,10 @@ export class QuestionService {
         .where({ attempt_id: attemptId, question_id: questionId })
         .first();
 
-      if (!mapping) throw new NotFoundException('Question mapping not found in this attempt');
+      if (!mapping)
+        throw new NotFoundException(
+          'Question mapping not found in this attempt',
+        );
 
       const isFlagged = !mapping.is_flagged;
       await this.knex('exam_attempt_questions')
